@@ -44,30 +44,66 @@ Kumpulan data ini merupakan aset yang sangat berharga dalam bidang Perawatan Kes
 - Chest Pain : Tumor paru bisa menekan jaringan atau saraf di rongga dada, menyebabkan nyeri. Nyeri yang bertahan lama atau terasa saat menarik napas dalam harus diwaspadai.
 
 ## Data Preparation
-- Melakukan 
+- Melakukan label encoding data kategorikal, beberapa fitur kategori dilakukan encoding agar menjadi fitur numerik.
+- Melakukan normalisasi data dengan standard scaler agar data tidak memiliki penyimpangan nilai yang terlalu jauh.
 
 ## Modeling
-Tahapan ini membahas mengenai model machine learning yang digunakan untuk menyelesaikan permasalahan. Anda perlu menjelaskan tahapan dan parameter yang digunakan pada proses pemodelan.
+Pada studi kasus ini, model yang digunakan adalah Random Forest dan XGBoost untuk memprediksi kemungkinan seseorang mengidap kanker paru berdasarkan fitur-fitur yang ada. Alasan pemilihan model tersebut adalah:
+- Random Forest adalah model ensemble yang terdiri dari kumpulan decision tree. Keunggulannya terletak pada kemampuannya menangani data non-linear serta ketahanannya terhadap overfitting. Meski begitu, proses pelatihannya umumnya lebih lambat dibandingkan dengan metode boosting.
+- XGBoost adalah algoritma boosting yang dilengkapi dengan teknik regularisasi, sehingga lebih efektif dalam mencegah overfitting dan menghasilkan model yang lebih akurat serta stabil. XGBoost umumya lebih lambat ketimbang Random Forest karena bersifat sekuensial.
 
-**Rubrik/Kriteria Tambahan (Opsional)**: 
-- Menjelaskan kelebihan dan kekurangan dari setiap algoritma yang digunakan.
-- Jika menggunakan satu algoritma pada solution statement, lakukan proses improvement terhadap model dengan hyperparameter tuning. **Jelaskan proses improvement yang dilakukan**.
-- Jika menggunakan dua atau lebih algoritma pada solution statement, maka pilih model terbaik sebagai solusi. **Jelaskan mengapa memilih model tersebut sebagai model terbaik**.
+Tahapan yang dilakukan saat modeling, yaitu:
+1. Load model :
+   - **Random Forest** diload dengan parameter `n_estimators=100` dan `random_state=42`:
+     ```python
+     train_rf = RandomForestClassifier(n_estimators=100, random_state=42)
+     ```
+   - **XGBoost** diload dengan parameter `random_state=42`:
+     ```python
+     train_xgb = XGBClassifier(random_state=42)
+     ```
+2. Train Model :
+   - **Random Forest** dilatih dengan data latih yaitu `X_train dan y_train`:
+     ```python
+     train_rf.fit(X_train, y_train)
+     ```
+   - **XGBoost** dilatih dengan data latih yaitu `X_train dan y_train`:
+     ```python
+     train_xgb.fit(X_train, y_train)
+     ```
+Setelah dilakukan evaluasi, model XGBoost dipilih sebagai model yang paling optimal, karena memiliki akurasi yang lebih baik dibandingkan dengan Random Forest.
 
 ## Evaluation
-Pada bagian ini anda perlu menyebutkan metrik evaluasi yang digunakan. Lalu anda perlu menjelaskan hasil proyek berdasarkan metrik evaluasi yang digunakan.
+Evaluasi terhadap model dilakukan dengan menggunakan sejumlah metrik utama yang relevan untuk klasifikasi biner, seperti **Accuracy**, **Precision**, **Recall**, **F1-Score**, serta **Confusion Matrix**. Pemilihan metrik-metrik ini didasarkan pada karakteristik dataset yang menuntut keseimbangan dalam mendeteksi kedua kelas, baik positif maupun negatif, secara akurat.
+Berikut adalah metrik evaluasi yang digunakan:
+1. **Accuracy Score** : Mengukur proporsi prediksi yang benar terhadap seluruh jumlah data.
+2. **Classification Report** :
+   - **Precision** : Mengukur proporsi prediksi positif yang benar.
+   - **Recall (Sensitivity)** : Mengukur proporsi kasus positif yang berhasil dideteksi.
+   - **F1-Score** : Menilai rata-rata harmonik antara Precision dan Recall, yang memberikan gambaran keseimbangan antara keduanya.
+3. **Confusion Matrix** : Memberikan gambaran menyeluruh tentang jenis kesalahan yang dilakukan model.
 
-Sebagai contoh, Anda memiih kasus klasifikasi dan menggunakan metrik **akurasi, precision, recall, dan F1 score**. Jelaskan mengenai beberapa hal berikut:
-- Penjelasan mengenai metrik yang digunakan
-- Menjelaskan hasil proyek berdasarkan metrik evaluasi
+Berikut hasil evaluasi dari hasil analisa prediksi data:
+1. Accuracy dan Classification Report
+    Model       | Precision | Recall | F1-Score | Accuracy
+    ------------|-----------|--------|----------|---------
+    RandomForest| 0.97      | 0.96   | 0.97     | 0.9667
+    XGBoost     | 0.97      | 0.97   | 0.97     | 0.9733
 
-Ingatlah, metrik evaluasi yang digunakan harus sesuai dengan konteks data, problem statement, dan solusi yang diinginkan.
+   Analisa Hasil
+   - Akurasi (Accuracy) : XGBoost unggul sedikit dengan akurasi 97.33%, dibandingkan Random Forest dengan 96.67%. Perbedaan ini kecil, tetapi tetap menunjukkan bahwa XGBoost sedikit lebih tepat dalam prediksi keseluruhan.
+   - Precision : Keduanya memiliki precision yang sama di angka 0.97. Artinya, ketika model memprediksi positif, 97% dari prediksi tersebut benar.
+   - Recall : Recall XGBoost lebih tinggi (0.97) dibanding Random Forest (0.96). Ini berarti XGBoost sedikit lebih baik dalam menangkap seluruh kasus positif (lebih sensitif terhadap kasus sebenarnya).
+   - F1-Score : Keduanya sama di angka 0.97, menunjukkan keseimbangan antara precision dan recall yang sangat baik.
 
-**Rubrik/Kriteria Tambahan (Opsional)**: 
-- Menjelaskan formula metrik dan bagaimana metrik tersebut bekerja.
+2. Confusion Matrix
+    | Model         | Actual Class      | Predicted Negative (0) | Predicted Positive (1) |
+    |---------------|-------------------|--------------------|--------------------|
+    | Random Forest | Actual Negative (0) | 73                 | 2                  |
+    | Random Forest | Actual Positive (1) | 3                  | 72                 |
+    | XGBoost       | Actual Negative (0) | 73                 | 2                  |
+    | XGBoost       | Actual Positive (1) | 2                  | 73                 |
 
-**---Ini adalah bagian akhir laporan---**
+   Berdasarkan hasil evaluasi Confusion Matrix menunjukan XGBoost lebih baik dibanding Random Forest, karena memiliki False Negative yang lebih rendah (2 vs 3). Dalam kasus deteksi penyakit seperti kanker paru, mengurangi False Negative sangat krusial untuk memastikan pasien yang sakit tidak luput dari diagnosis. Oleh karena itu, meskipun perbedaan kecil, XGBoost lebih unggul dalam konteks ini.
 
-_Catatan:_
-- _Anda dapat menambahkan gambar, kode, atau tabel ke dalam laporan jika diperlukan. Temukan caranya pada contoh dokumen markdown di situs editor [Dillinger](https://dillinger.io/), [Github Guides: Mastering markdown](https://guides.github.com/features/mastering-markdown/), atau sumber lain di internet. Semangat!_
-- Jika terdapat penjelasan yang harus menyertakan code snippet, tuliskan dengan sewajarnya. Tidak perlu menuliskan keseluruhan kode project, cukup bagian yang ingin dijelaskan saja.
+
