@@ -44,13 +44,15 @@ Kumpulan data ini merupakan aset yang sangat berharga dalam bidang Perawatan Kes
 - Chest Pain : Tumor paru bisa menekan jaringan atau saraf di rongga dada, menyebabkan nyeri. Nyeri yang bertahan lama atau terasa saat menarik napas dalam harus diwaspadai.
 
 ## Data Preparation
-- Melakukan label encoding data kategorikal, beberapa fitur kategori dilakukan encoding agar menjadi fitur numerik.
+- Melakukan label encoding data kategorikal, beberapa fitur kategori seperti gender dan lung cancer dilakukan encoding agar menjadi fitur numerik.
 - Melakukan normalisasi data dengan standard scaler agar data tidak memiliki penyimpangan nilai yang terlalu jauh.
+- Split dataset menjadi data train dan data test, dengan komposisi data train (80%) dan data test (20%)
 
 ## Modeling
 Pada studi kasus ini, model yang digunakan adalah Random Forest dan XGBoost untuk memprediksi kemungkinan seseorang mengidap kanker paru berdasarkan fitur-fitur yang ada. Alasan pemilihan model tersebut adalah:
-- Random Forest adalah model ensemble yang terdiri dari kumpulan decision tree. Keunggulannya terletak pada kemampuannya menangani data non-linear serta ketahanannya terhadap overfitting. Meski begitu, proses pelatihannya umumnya lebih lambat dibandingkan dengan metode boosting.
-- XGBoost adalah algoritma boosting yang dilengkapi dengan teknik regularisasi, sehingga lebih efektif dalam mencegah overfitting dan menghasilkan model yang lebih akurat serta stabil. XGBoost umumya lebih lambat ketimbang Random Forest karena bersifat sekuensial.
+- Random Forest adalah algoritma ensemble yang bekerja dengan membangun banyak pohon keputusan (decision trees) dari subset acak data pelatihan menggunakan teknik bootstrap. Setiap pohon dilatih dengan subset data dan subset fitur yang berbeda secara acak, sehingga menciptakan keragaman antar pohon. Ketika melakukan prediksi, setiap pohon memberikan hasil klasifikasinya dan keputusan akhir diambil berdasarkan suara mayoritas dari seluruh pohon dalam hutan. Pendekatan ini membuat Random Forest tahan terhadap overfitting dan cocok untuk data dengan banyak fitur, meskipun bisa lebih lambat karena banyaknya pohon yang harus dibuat dan dievaluasi.
+
+- XGBoost (Extreme Gradient Boosting) adalah algoritma boosting yang membangun model prediktif secara bertahap dengan menambahkan pohon keputusan satu per satu untuk memperbaiki kesalahan dari model sebelumnya. Pada setiap iterasi, XGBoost menggunakan pendekatan optimisasi gradien untuk meminimalkan fungsi loss, dan juga mempertimbangkan turunan kedua (Hessian) dari fungsi tersebut untuk pembaruan parameter yang lebih presisi. Dengan menerapkan regularisasi, XGBoost mampu menghindari overfitting meskipun memiliki kompleksitas model yang tinggi. Model akhir merupakan kombinasi dari semua pohon yang telah dibangun, dan kontribusi masing-masing pohon dikontrol melalui parameter learning rate. XGBoost terkenal karena kecepatan dan akurasinya yang tinggi serta fleksibilitasnya dalam menangani berbagai jenis data.
 
 Tahapan yang dilakukan saat modeling, yaitu:
 1. Load model :
@@ -87,23 +89,24 @@ Berikut hasil evaluasi dari hasil analisa prediksi data:
 1. Accuracy dan Classification Report
     Model       | Precision | Recall | F1-Score | Accuracy
     ------------|-----------|--------|----------|---------
-    RandomForest| 0.97      | 0.96   | 0.97     | 0.9667
-    XGBoost     | 0.97      | 0.97   | 0.97     | 0.9733
+    RandomForest| 0.53      | 0.53   |  0.53    | 0.5300
+    XGBoost     | 0.49      | 0.49   | 0.49     | 0.4883
 
    Analisa Hasil
-   - Akurasi (Accuracy) : XGBoost unggul sedikit dengan akurasi 97.33%, dibandingkan Random Forest dengan 96.67%. Perbedaan ini kecil, tetapi tetap menunjukkan bahwa XGBoost sedikit lebih tepat dalam prediksi keseluruhan.
-   - Precision : Keduanya memiliki precision yang sama di angka 0.97. Artinya, ketika model memprediksi positif, 97% dari prediksi tersebut benar.
-   - Recall : Recall XGBoost lebih tinggi (0.97) dibanding Random Forest (0.96). Ini berarti XGBoost sedikit lebih baik dalam menangkap seluruh kasus positif (lebih sensitif terhadap kasus sebenarnya).
-   - F1-Score : Keduanya sama di angka 0.97, menunjukkan keseimbangan antara precision dan recall yang sangat baik.
+   - Akurasi (Accuracy) : Hasil ini menunjukkan bahwa prediksi model tidak jauh lebih baik dari tebakan acak. Random Forest hanya mampu memprediksi dengan benar 53% dari seluruh data, sementara XGBoost bahkan kurang dari 50%.
+   - Precision :Nilai precision Random Forest sedikit lebih tinggi, menunjukkan model ini sedikit lebih baik dalam menghindari false positive dibandingkan XGBoost. Namun, nilainya tetap rendah, mengindikasikan banyak prediksi positif yang salah.
+   - Recall : Recall mengukur seberapa banyak kasus positif yang berhasil dikenali oleh model. Lagi-lagi, Random Forest sedikit lebih baik dalam mendeteksi kasus positif dibandingkan XGBoost. Tapi recall yang rendah menunjukkan bahwa banyak kasus positif yang tidak berhasil ditangkap (false negative).
+   - F1-Score : Skor ini memperlihatkan keseimbangan antara keduanya. Walaupun Random Forest terlihat lebih tinggi, nilai yang rendah di kedua model memperlihatkan bahwa tidak ada trade-off yang baik.
+   - Random Forest lebih unggul sedikit dari XGBoost di semua metrik, namun performa keduanya tetap tidak memadai.
 
 2. Confusion Matrix
     | Model         | Actual Class      | Predicted Negative (0) | Predicted Positive (1) |
     |---------------|-------------------|--------------------|--------------------|
-    | Random Forest | Actual Negative (0) | 73                 | 2                  |
-    | Random Forest | Actual Positive (1) | 3                  | 72                 |
-    | XGBoost       | Actual Negative (0) | 73                 | 2                  |
-    | XGBoost       | Actual Positive (1) | 2                  | 73                 |
+    | Random Forest | Actual Negative (0) | 145              | 157                  |
+    | Random Forest | Actual Positive (1) | 125              |  173                 |
+    | XGBoost       | Actual Negative (0) | 136              | 166                  |
+    | XGBoost       | Actual Positive (1) | 141              |157                 |
 
-   Berdasarkan hasil evaluasi Confusion Matrix menunjukan XGBoost lebih baik dibanding Random Forest, karena memiliki False Negative yang lebih rendah (2 vs 3). Dalam kasus deteksi penyakit seperti kanker paru, mengurangi False Negative sangat krusial untuk memastikan pasien yang sakit tidak luput dari diagnosis. Oleh karena itu, meskipun perbedaan kecil, XGBoost lebih unggul dalam konteks ini.
+   Berdasarkan hasil evaluasi Confusion Matrix menunjukan Random Forest lebih baik daripada XGBoost dalam hal mendeteksi kedua kelas (positif dan negatif). Kedua model mengalami ketidakseimbangan deteksi, dengan tingkat False Positive dan False Negative yang tinggi, sehingga akurasi secara umum juga rendah.
 
 
